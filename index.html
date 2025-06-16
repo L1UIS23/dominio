@@ -1,1 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solucionador de Desigualdades</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 30px auto;
+        }
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .input-group label {
+            min-width: 40px;
+            font-weight: bold;
+        }
+        .input-group input[type="number"],
+        .input-group select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex-grow: 1;
+            min-width: 60px; /* Adjust as needed */
+        }
+        .equation-display {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #cce5ff;
+            background-color: #e0f2ff;
+            border-radius: 6px;
+            font-size: 1.1em;
+            color: #004085;
+            min-height: 50px; /* Para que siempre tenga un espacio */
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Solucionador de Desigualdades</h1>
 
+        <div class="section">
+            <h2>Desigualdad Lineal: $ax + b \text{ OP } 0$</h2>
+            <div class="input-group">
+                <label for="linear_a">a:</label>
+                <input type="number" id="linear_a" value="1">
+                <span style="font-weight: bold;">x +</span>
+                <label for="linear_b">b:</label>
+                <input type="number" id="linear_b" value="0">
+                <select id="linear_op">
+                    <option value="gt">&gt;</option>
+                    <option value="lt">&lt;</option>
+                    <option value="ge">&ge;</option>
+                    <option value="le">&le;</option>
+                </select>
+                <span style="font-weight: bold;">0</span>
+            </div>
+            <button onclick="solveLinear()">Resolver Lineal</button>
+            <div id="linear_result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>Desigualdad Cuadrática: $ax^2 + bx + c \text{ OP } 0$</h2>
+            <div class="input-group">
+                <label for="quadratic_a">a:</label>
+                <input type="number" id="quadratic_a" value="1">
+                <span style="font-weight: bold;">x² +</span>
+                <label for="quadratic_b">b:</label>
+                <input type="number" id="quadratic_b" value="0">
+                <span style="font-weight: bold;">x +</span>
+                <label for="quadratic_c">c:</label>
+                <input type="number" id="quadratic_c" value="0">
+                <select id="quadratic_op">
+                    <option value="gt">&gt;</option>
+                    <option value="lt">&lt;</option>
+                    <option value="ge">&ge;</option>
+                    <option value="le">&le;</option>
+                </select>
+                <span style="font-weight: bold;">0</span>
+            </div>
+            <button onclick="solveQuadratic()">Resolver Cuadrática</button>
+            <div id="quadratic_result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Función para manejar la desigualdad lineal
+        function solveLinear() {
+            const a = parseFloat(document.getElementById('linear_a').value);
+            const b = parseFloat(document.getElementById('linear_b').value);
+            const op = document.getElementById('linear_op').value;
+            const resultDiv = document.getElementById('linear_result');
+            resultDiv.innerHTML = ''; // Limpiar resultados anteriores
+
+            if (isNaN(a) || isNaN(b)) {
+                resultDiv.innerHTML = '<span class="error">Por favor, introduce valores numéricos válidos.</span>';
+                return;
+            }
+
+            let solution = '';
+
+            if (a === 0) {
+                // Caso especial: 0x + b OP 0 => b OP 0
+                if (op === 'gt') solution = (b > 0) ? 'Todos los números reales (x ∈ ℝ)' : 'No hay solución (∅)';
+                else if (op === 'lt') solution = (b < 0) ? 'Todos los números reales (x ∈ ℝ)' : 'No hay solución (∅)';
+                else if (op === 'ge') solution = (b >= 0) ? 'Todos los números reales (x ∈ ℝ)' : 'No hay solución (∅)';
+                else if (op === 'le') solution = (b <= 0) ? 'Todos los números reales (x ∈ ℝ)' : 'No hay solución (∅)';
+            } else {
+                let x;
+                // ax + b OP 0  =>  ax OP -b
+                // Si a > 0: x OP -b/a
+                // Si a < 0: x OP_inverso -b/a (el signo de la desigualdad se invierte)
+                
+                if (a > 0) {
+                    x = -b / a;
+                    if (op === 'gt') solution = `x > ${x.toFixed(2)}`;
+                    else if (op === 'lt') solution = `x < ${x.toFixed(2)}`;
+                    else if (op === 'ge') solution = `x ≥ ${x.toFixed(2)}`;
+                    else if (op === 'le') solution = `x ≤ ${x.toFixed(2)}`;
+                } else { // a < 0
+                    x = -b / a;
+                    if (op === 'gt') solution = `x < ${x.toFixed(2)}`; // Invierte a <
+                    else if (op === 'lt') solution = `x > ${x.toFixed(2)}`; // Invierte a >
+                    else if (op === 'ge') solution = `x ≤ ${x.toFixed(2)}`; // Invierte a ≤
+                    else if (op === 'le') solution = `x ≥ ${x.toFixed(2)}`; // Invierte a ≥
+                }
+            }
+            resultDiv.innerHTML = `Solución: ${solution}`;
+        }
+
+        // Función para manejar la desigualdad cuadrática
+        function solveQuadratic() {
+            const a = parseFloat(document.getElementById('quadratic_a').value);
+            const b = parseFloat(document.getElementById('quadratic_b').value);
+            const c = parseFloat(document.getElementById('quadratic_c').value);
+            const op = document.getElementById('quadratic_op').value;
+            const resultDiv = document.getElementById('quadratic_result');
+            resultDiv.innerHTML = ''; // Limpiar resultados anteriores
+
+            if (isNaN(a) || isNaN(b) || isNaN(c)) {
+                resultDiv.innerHTML = '<span class="error">Por favor, introduce valores numéricos válidos.</span>';
+                return;
+            }
+
+            if (a === 0) {
+                resultDiv.innerHTML = '<span class="error">Si a=0, esto es una desigualdad lineal. Usa el solucionador de arriba.</span>';
+                return;
+            }
+
+            const delta = b * b - 4 * a * c;
+            let solution = '';
+            let root1, root2;
+
+            if (delta >= 0) {
+                // Raíces reales
+                root1 = (-b - Math.sqrt(delta)) / (2 * a);
+                root2 = (-b + Math.sqrt(delta)) / (2 * a);
+
+                // Asegurar que root1 sea siempre el menor para la notación de intervalo
+                if (root1 > root2) {
+                    [root1, root2] = [root2, root1]; // Swap
+                }
+
+                if (delta === 0) {
+                    // Una raíz real (parabola toca el eje x en un punto)
+                    if (a > 0) { // Parábola abre hacia arriba
+                        if (op === 'gt' || op === 'ge') solution = `Todos los números reales (x ∈ ℝ) excepto x = ${root1.toFixed(2)} si op es >`;
+                        if (op === 'ge') solution = `Todos los números reales (x ∈ ℝ)`; // Siempre >= 0
+                        else if (op === 'lt' || op === 'le') solution = `No hay solución (∅)${op === 'le' ? ` excepto x = ${root1.toFixed(2)} (única solución)` : ''}`;
+                    } else { // Parábola abre hacia abajo (a < 0)
+                        if (op === 'lt' || op === 'le') solution = `Todos los números reales (x ∈ ℝ)`; // Siempre <= 0
+                        else if (op === 'gt' || op === 'ge') solution = `No hay solución (∅)${op === 'ge' ? ` excepto x = ${root1.toFixed(2)} (única solución)` : ''}`;
+                    }
+
+                } else {
+                    // Dos raíces reales distintas
+                    if (a > 0) { // Parábola abre hacia arriba
+                        if (op === 'gt') solution = `x < ${root1.toFixed(2)} o x > ${root2.toFixed(2)}`;
+                        else if (op === 'lt') solution = `${root1.toFixed(2)} < x < ${root2.toFixed(2)}`;
+                        else if (op === 'ge') solution = `x ≤ ${root1.toFixed(2)} o x ≥ ${root2.toFixed(2)}`;
+                        else if (op === 'le') solution = `${root1.toFixed(2)} ≤ x ≤ ${root2.toFixed(2)}`;
+                    } else { // Parábola abre hacia abajo (a < 0)
+                        if (op === 'gt') solution = `${root1.toFixed(2)} < x < ${root2.toFixed(2)}`;
+                        else if (op === 'lt') solution = `x < ${root1.toFixed(2)} o x > ${root2.toFixed(2)}`;
+                        else if (op === 'ge') solution = `${root1.toFixed(2)} ≤ x ≤ ${root2.toFixed(2)}`;
+                        else if (op === 'le') solution = `x ≤ ${root1.toFixed(2)} o x ≥ ${root2.toFixed(2)}`;
+                    }
+                }
+            } else {
+                // Raíces complejas (la parábola nunca cruza el eje x)
+                if (a > 0) { // Parábola abre hacia arriba, siempre por encima del eje x
+                    if (op === 'gt' || op === 'ge') solution = 'Todos los números reales (x ∈ ℝ)';
+                    else if (op === 'lt' || op === 'le') solution = 'No hay solución (∅)';
+                } else { // Parábola abre hacia abajo, siempre por debajo del eje x
+                    if (op === 'lt' || op === 'le') solution = 'Todos los números reales (x ∈ ℝ)';
+                    else if (op === 'gt' || op === 'ge') solution = 'No hay solución (∅)';
+                }
+            }
+            resultDiv.innerHTML = `Solución: ${solution}`;
+        }
+    </script>
+</body>
+</html>
